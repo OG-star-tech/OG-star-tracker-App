@@ -32,6 +32,16 @@
 	<string name="photo_control_elapsed_time_hour">h</string>
 	<string name="photo_control_elapsed_time_minute">m</string>
 	<string name="photo_control_elapsed_time_second">s</string>
+	<string name="exposure_test_title">Exposition tester</string>
+	<string name="exposure_test_subtitle">Find the longest exposition time for your setup</string>
+	<string name="exposure_test_info">Pick your minimal and maximal exposition time and step size with delay time. Tracker will then command your camera to take these expositions. Finally you can check your camera and decide what is the best time for you.\n\nExample: min 45s, max 100s, step size 10s, delay 5s:\nCamera will capture 45s, 5s wait, 55s, 5s wait, … 100s.\n\nYou need to connect your tracker to camera with cable!</string>
+	<string name="exposure_test_start_time">Starting exposition time</string>
+	<string name="exposure_test_end_time">Ending exposition time</string>
+	<string name="exposure_test_step_size">Step size</string>
+	<string name="exposure_test_delay_time">Delay time</string>
+	<string name="exposure_test_estimate">Estimated testing time</string>
+	<string name="exposure_test_start">Start testing</string>
+	<string name="exposure_test_end">End testing</string>
 	<string name="sidereal_tracking_title">Sidereal Tracking</string>
 	<string name="sidereal_tracking_subtitle">Compensate for Earth’s rotation</string>
 	<string name="slew_control_title">Slew Control</string>

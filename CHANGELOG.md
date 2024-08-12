@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.0.4]
+
+- add new exposition tester feature
+
 ## [1.0.3]
 
 - fix crash when inserting wrong separator on pixel size

@@ -15,6 +15,7 @@ import og.ogstartracker.Config.CHECK_WIFI_DURATION
 import og.ogstartracker.Config.SLEW_MAX_VALUE
 import og.ogstartracker.Config.SLEW_MIN_VALUE
 import og.ogstartracker.Config.STATUS_TRACKING_ON
+import og.ogstartracker.domain.events.ExpositionTesterEvent
 import og.ogstartracker.domain.events.PhotoControlEvent
 import og.ogstartracker.domain.events.SlewControlEvent
 import og.ogstartracker.domain.models.CheckListItem
@@ -23,13 +24,16 @@ import og.ogstartracker.domain.usecases.arduino.StartCaptureUseCase
 import og.ogstartracker.domain.usecases.providers.DashboardUseCaseProvider
 import og.ogstartracker.domain.usecases.settings.SetNewSettingsUseCase
 import og.ogstartracker.domain.usecases.settings.SettingItem
+import og.ogstartracker.ui.components.common.input.NotEmptyIntValidator
 import og.ogstartracker.ui.components.common.input.NotEmptyValidator
 import og.ogstartracker.ui.components.common.input.TextFieldState
 import og.ogstartracker.utils.VibratorController
 import og.ogstartracker.utils.WhileUiSubscribed
+import og.ogstartracker.utils.onError
 import og.ogstartracker.utils.onSuccess
 import og.ogstartracker.utils.vibrationPatternClick
 import og.ogstartracker.utils.vibrationPatternThreeClick
+import timber.log.Timber
 import kotlin.math.roundToInt
 
 private const val SECOND = 1000L
@@ -52,6 +56,7 @@ class DashboardViewModel internal constructor(
 
 	private var runTimer: Boolean = false
 	private var photoCaptureTimerJob: Job? = null
+	private var expositionTesterJob: Job? = null
 	private var wifiTimerJob: Job? = null
 
 	private val _checkWifiEvent = MutableStateFlow(false)
@@ -239,9 +244,126 @@ class DashboardViewModel internal constructor(
 	/**
 	 * Helper function for communicating with arduino.
 	 */
-	private fun sendCommand(command: suspend () -> Unit) {
-		viewModelScope.launch(Dispatchers.Default) {
+	private fun sendCommand(command: suspend () -> Unit): Job {
+		return viewModelScope.launch(Dispatchers.Default) {
 			command()
+		}
+	}
+
+	/**
+	 * Handles events related to the exposition tester.
+	 *
+	 * This function processes different types of [ExpositionTesterEvent]
+	 * to either start or end the exposure test.
+	 *
+	 * @param event The [ExpositionTesterEvent] to handle.
+	 */
+	internal fun expositionTesterEvent(event: ExpositionTesterEvent) {
+		when (event) {
+			ExpositionTesterEvent.EndTest -> {
+				sendCommand { useCases.abortCapture() }
+				expositionTesterJob?.cancel()
+				_uiState.update {
+					it.copy(
+						exposureTestingActive = false,
+						expositionTesterTimeEstimateMillis = null
+					)
+				}
+				stopPhotoCaptureTimer()
+			}
+
+			is ExpositionTesterEvent.StartTest -> {
+				val startTime = uiState.value.expositionTesterStart.textState.text.toIntOrNull() ?: return
+				val endTime = uiState.value.expositionTesterEnd.textState.text.toIntOrNull() ?: return
+				val stepSize = uiState.value.expositionTesterStepSize.textState.text.toIntOrNull() ?: return
+				val delay = uiState.value.expositionTesterDelay.textState.text.toIntOrNull() ?: return
+				if (endTime <= startTime) return
+				if (startTime <= 0 || stepSize <= 0 || delay <= 0) return
+
+				var stepCount = 0
+				var expositionSum = 0
+				while (startTime + (stepSize * stepCount) < endTime) {
+					expositionSum += (startTime + stepCount * stepSize)
+					stepCount++
+				}
+
+				expositionSum += endTime
+
+				val estimate = (expositionSum + (stepCount) * delay) * 1000
+
+				_uiState.update {
+					it.copy(
+						exposureTestingActive = true,
+						expositionTesterTimeEstimateMillis = estimate.toLong()
+					)
+				}
+
+				startExposureTest(startTime, endTime, stepSize, delay)
+			}
+		}
+	}
+
+	/**
+	 * Starts the exposure test with the given parameters.
+	 *
+	 * This function initiates a series of exposures with varying times,
+	 * incrementing by the specified step size, and includes delays between exposures.
+	 * It continues until the end time is reached.
+	 *
+	 * @param startTime The initial exposure time in seconds.
+	 * @param endTime The final exposure time in seconds.
+	 * @param stepSize The increment in exposure time for each step in seconds.
+	 * @param delay The delay between each exposure in seconds.
+	 */
+	private fun startExposureTest(startTime: Int, endTime: Int, stepSize: Int, delay: Int) {
+		expositionTesterJob?.cancel()
+
+		var expositionTime = startTime
+		var finishedSteps = 0
+		var runCycle = true
+
+		expositionTesterJob = sendCommand {
+			while (runCycle) {
+				useCases.startCapture(
+					StartCaptureUseCase.Input(
+						exposure = expositionTime,
+						numExposures = 1,
+						focalLength = 0,
+						pixSize = 0,
+						ditherEnabled = 0,
+					)
+				).onError {
+					_uiState.update {
+						it.copy(
+							expositionTesterTimeEstimateMillis = 0,
+							exposureTestingActive = false,
+						)
+					}
+					runCycle = false
+					return@sendCommand
+				}.onSuccess {
+					finishedSteps++
+				}
+
+				if (expositionTime == endTime) {
+					Timber.d("startExposureTest() start exposition with duration $expositionTime")
+					delay(expositionTime.toLong() * 1000)
+					Timber.d("startExposureTest() waited for " + expositionTime.toLong() + " seconds")
+					runCycle = false
+					Timber.d("startExposureTest() finished")
+					expositionTesterEvent(ExpositionTesterEvent.EndTest)
+					return@sendCommand
+				} else {
+					Timber.d("startExposureTest() start exposition with duration $expositionTime")
+					delay(expositionTime.toLong() * 1000)
+					Timber.d("startExposureTest() waited for " + expositionTime.toLong() + " seconds")
+					expositionTime = (startTime + finishedSteps * stepSize).coerceAtMost(endTime)
+					useCases.abortCapture()
+					Timber.d("startExposureTest() now wait for $delay")
+					delay(delay.toLong() * 1000)
+					Timber.d("startExposureTest() waited for " + delay.toLong() + " seconds")
+				}
+			}
 		}
 	}
 
@@ -396,8 +518,10 @@ data class DashboardUiState internal constructor(
 	val siderealActive: Boolean = false,
 	val ditheringEnabled: Boolean = false,
 	val capturingActive: Boolean = false,
+	val exposureTestingActive: Boolean = false,
 	val lastMessage: String? = null,
 	val slewValue: Int = 0,
+	// photo control
 	val captureStartTime: Long? = null,
 	val captureCount: Int? = null,
 	val captureElapsedTimeMillis: Long? = null,
@@ -407,6 +531,13 @@ data class DashboardUiState internal constructor(
 	val frameCount: TextFieldState = TextFieldState(text = "", validator = NotEmptyValidator()),
 	val ditherFocalLength: TextFieldState = TextFieldState(text = "", validator = NotEmptyValidator()),
 	val ditherPixelSize: TextFieldState = TextFieldState(text = "", validator = NotEmptyValidator()),
+	// exposition tester inputs
+	val expositionTesterStart: TextFieldState = TextFieldState(text = "", validator = NotEmptyIntValidator()),
+	val expositionTesterEnd: TextFieldState = TextFieldState(text = "", validator = NotEmptyIntValidator()),
+	val expositionTesterStepSize: TextFieldState = TextFieldState(text = "", validator = NotEmptyIntValidator()),
+	val expositionTesterDelay: TextFieldState = TextFieldState(text = "", validator = NotEmptyIntValidator()),
+	val expositionTesterTimeEstimateMillis: Long? = null,
+	// checklist
 	val checkListItems: List<CheckListItem> = defaultCheckListItems
 ) {
 //	fun getCaptureRatio() = buildString {
@@ -419,7 +550,7 @@ data class DashboardUiState internal constructor(
 	 * Returns true if every required input have correct value.
 	 * Required inputs change according to what user enabled.
 	 */
-	fun arePhotoControlInputsValid(): Boolean {
+	internal fun arePhotoControlInputsValid(): Boolean {
 		val intervalometerValid = exposeTime.isValid() && frameCount.isValid()
 		val ditherValid = ditherFocalLength.isValid() && ditherPixelSize.isValid()
 
@@ -429,6 +560,13 @@ data class DashboardUiState internal constructor(
 			intervalometerValid
 		}
 	}
+
+	/**
+	 * Returns true if all four inputs are valid.
+	 */
+	internal fun areExpositionInputsValid() =
+		expositionTesterStart.isValid() && expositionTesterEnd.isValid() &&
+			expositionTesterStepSize.isValid() && expositionTesterDelay.isValid()
 }
 
 private val defaultCheckListItems = listOf(
