@@ -55,6 +55,7 @@ import kotlinx.coroutines.launch
 import og.ogstartracker.Config
 import og.ogstartracker.Config.SCREEN_SETTINGS
 import og.ogstartracker.R
+import og.ogstartracker.domain.events.ExpositionTesterEvent
 import og.ogstartracker.domain.events.PhotoControlEvent
 import og.ogstartracker.domain.events.SlewControlEvent
 import og.ogstartracker.domain.models.CheckListItem
@@ -62,6 +63,7 @@ import og.ogstartracker.domain.usecases.settings.SettingItem
 import og.ogstartracker.ui.components.InfoDialog
 import og.ogstartracker.ui.components.cards.ChecklistCard
 import og.ogstartracker.ui.components.cards.ConnectionCard
+import og.ogstartracker.ui.components.cards.ExpositionTesterCard
 import og.ogstartracker.ui.components.cards.PhotoControlCard
 import og.ogstartracker.ui.components.cards.SiderealCard
 import og.ogstartracker.ui.components.cards.SlewControlCard
@@ -166,7 +168,8 @@ fun DashboardScreen(
 				}
 			}
 		},
-		onChecklistItemClicked = viewModel::updateCheckListItem
+		onChecklistItemClicked = viewModel::updateCheckListItem,
+		onExpositionTesterEvent = viewModel::expositionTesterEvent
 	)
 
 	if (showInfoDialog) {
@@ -214,6 +217,7 @@ private fun DashboardScreenContent(
 	onSiderealClicked: (Boolean) -> Unit,
 	onSlewControlEvent: (SlewControlEvent) -> Unit,
 	onChecklistItemClicked: (CheckListItem) -> Unit,
+	onExpositionTesterEvent: (ExpositionTesterEvent) -> Unit,
 	onPhotoControlEvent: (PhotoControlEvent) -> Unit,
 	onGearClick: () -> Unit,
 	onConnectionClick: () -> Unit,
@@ -236,6 +240,7 @@ private fun DashboardScreenContent(
 				notifyAboutChange = notifyAboutChange,
 				onConnectionClick = onConnectionClick,
 				onChecklistItemClicked = onChecklistItemClicked,
+				onExpositionTesterEvent = onExpositionTesterEvent,
 			)
 		},
 		containerColor = MaterialTheme.colorScheme.surface,
@@ -248,6 +253,7 @@ private fun DashboardScreenLayout(
 	onChecklistClicked: () -> Unit,
 	onSlewControlEvent: (SlewControlEvent) -> Unit,
 	onPhotoControlEvent: (PhotoControlEvent) -> Unit,
+	onExpositionTesterEvent: (ExpositionTesterEvent) -> Unit,
 	onChecklistItemClicked: (CheckListItem) -> Unit,
 	onGearClick: () -> Unit,
 	onConnectionClick: () -> Unit,
@@ -352,6 +358,13 @@ private fun DashboardScreenLayout(
 				notifyAboutChange = notifyAboutChange,
 			)
 		}
+
+		item {
+			ExpositionTesterCard(
+				uiState = uiState,
+				onExpositionTesterEvent = onExpositionTesterEvent,
+			)
+		}
 	}
 }
 
@@ -392,7 +405,8 @@ internal fun HomeScreenContentPreview() {
 			onGearClick = {},
 			notifyAboutChange = { _, _ -> },
 			onConnectionClick = {},
-			onChecklistItemClicked = {}
+			onChecklistItemClicked = {},
+			onExpositionTesterEvent = {}
 		)
 	}
 }
