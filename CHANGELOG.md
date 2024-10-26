@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.0.5]
+
+- add multiple tracking modes (sidereal, solar and lunar)
+- fixed bug when hemisphere setting was ignored (sorry about that)
+
+## [1.0.4]
+
+- add new exposition tester feature
+
 ## [1.0.4]
 
 - add new exposition tester feature
