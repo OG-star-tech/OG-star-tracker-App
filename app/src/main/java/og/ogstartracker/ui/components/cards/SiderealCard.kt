@@ -26,6 +26,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import og.ogstartracker.Constants
 import og.ogstartracker.R
+import og.ogstartracker.domain.models.TrackingMode
 import og.ogstartracker.ui.components.common.CustomSwitch
 import og.ogstartracker.ui.theme.AppTheme
 import og.ogstartracker.ui.theme.ColorBackground
@@ -41,6 +42,7 @@ import og.ogstartracker.utils.segmentedShadow
 @Composable
 fun SiderealCard(
 	enabled: Boolean,
+	trackingMode: String,
 	active: Boolean,
 	onCheckChanged: (Boolean) -> Unit,
 	modifier: Modifier = Modifier,
@@ -86,7 +88,9 @@ fun SiderealCard(
 					color = ColorPrimary
 				)
 				Text(
-					text = stringResource(id = R.string.sidereal_tracking_subtitle),
+					text = stringResource(
+						id = R.string.sidereal_tracking_subtitle, trackingMode
+					),
 					style = textStyle10ItalicBold,
 					color = ColorSecondary
 				)
@@ -110,12 +114,14 @@ fun SiderealCardPreview() {
 			SiderealCard(
 				onCheckChanged = {},
 				active = true,
-				enabled = true
+				enabled = true,
+				trackingMode = stringResource(TrackingMode.SIDEREAL.text),
 			)
 			SiderealCard(
 				onCheckChanged = {},
 				active = false,
-				enabled = true
+				enabled = true,
+				trackingMode = stringResource(TrackingMode.SIDEREAL.text),
 			)
 		}
 	}

@@ -16,4 +16,5 @@ object Config {
 
 	const val PREFERENCES_VIBRATIONS = "vibrations"
 	const val PREFERENCES_HEMISPHERE = "hemisphere"
+	const val PREFERENCES_TRACKING_MODE = "tracking_mode"
 }

@@ -12,7 +12,6 @@ import og.ogstartracker.domain.usecases.arduino.TurnTrackerLeftUseCase
 import og.ogstartracker.domain.usecases.arduino.TurnTrackerRightUseCase
 import og.ogstartracker.domain.usecases.onboarding.DidUserSeeOnboardingUseCase
 import og.ogstartracker.domain.usecases.onboarding.SetUserSawOnboardingUseCase
-import og.ogstartracker.domain.usecases.settings.GetCurrentHemisphereFlowUseCase
 import og.ogstartracker.domain.usecases.settings.GetSettingsUseCase
 import og.ogstartracker.domain.usecases.settings.SetNewSettingsUseCase
 
@@ -28,7 +27,6 @@ data class DashboardUseCaseProvider constructor(
 	val resetLastArduinoMessage: ResetLastArduinoMessageUseCase,
 	val getLastArduinoMessage: GetLastArduinoMessageUseCase,
 	val didUserSeeOnboarding: DidUserSeeOnboardingUseCase,
-	val getCurrentHemisphereFlow: GetCurrentHemisphereFlowUseCase,
 	val getSettings: GetSettingsUseCase,
 	val getCurrentState: GetCurrentStateUseCase,
 	val getVersion: GetVersionUseCase,

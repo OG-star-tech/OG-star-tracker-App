@@ -12,15 +12,13 @@ val appModule = module {
 	viewModel {
 		DashboardViewModel(
 			vibratorController = get(),
-			useCases = get()
+			useCases = get(),
 		)
 	}
 
 	viewModel {
 		SettingsViewModel(
-			setCurrentHemisphere = get(),
-			getCurrentHemisphereFlow = get(),
-			getVersion = get()
+			getVersion = get(),
 		)
 	}
 

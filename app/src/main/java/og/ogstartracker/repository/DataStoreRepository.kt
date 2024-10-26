@@ -1,17 +1,9 @@
 package og.ogstartracker.repository
 
 import kotlinx.coroutines.flow.Flow
-import og.ogstartracker.domain.models.Hemisphere
 import og.ogstartracker.domain.usecases.settings.SettingItem
 
 interface DataStoreRepository {
-
-	/**
-	 * The hemisphere currently set in the settings.
-	 *
-	 * This is a Flow that emits the current hemisphere set in the settings. The hemisphere can be either NORTH or SOUTH.
-	 */
-	val hemisphere: Flow<Hemisphere>
 
 	/**
 	 * The exposure time currently set in the settings.
@@ -61,15 +53,6 @@ interface DataStoreRepository {
 	 * This is a Flow that emits the current status of whether the user has seen the onboarding. If the user has seen the onboarding, the value is true. If not, the value is false.
 	 */
 	val userSawOnboarding: Flow<Boolean>
-
-	/**
-	 * Updates the hemisphere in the settings.
-	 *
-	 * This function updates the hemisphere in the settings. The new hemisphere is passed as a parameter.
-	 *
-	 * @param hemisphere The new hemisphere to set in the settings. This can be either Hemisphere.NORTH or Hemisphere.SOUTH.
-	 */
-	suspend fun updateHemisphere(hemisphere: Hemisphere)
 
 	/**
 	 * Sets new settings.

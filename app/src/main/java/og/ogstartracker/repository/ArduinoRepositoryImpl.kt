@@ -3,6 +3,7 @@ package og.ogstartracker.repository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import og.ogstartracker.domain.models.Hemisphere
+import og.ogstartracker.domain.models.TrackingMode
 import og.ogstartracker.network.ArduinoApi
 import og.ogstartracker.utils.onSuccess
 import og.ogstartracker.utils.tryOnline
@@ -14,8 +15,11 @@ class ArduinoRepositoryImpl constructor(
 	private val _lastArduinoMessage = MutableStateFlow<String?>(null)
 	override val lastArduinoMessage = _lastArduinoMessage.asStateFlow()
 
-	override suspend fun startSideRealTracking(direction: Hemisphere) = tryOnline {
-		arduinoApi.startSiderealTracking(direction.arduinoValue)
+	override suspend fun startSideRealTracking(
+		direction: Hemisphere,
+		trackingMode: TrackingMode,
+	) = tryOnline {
+		arduinoApi.startSiderealTracking(direction.arduinoValue, trackingMode.arduinoValue)
 	}.onSuccess { message ->
 		_lastArduinoMessage.value = message
 	}

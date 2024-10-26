@@ -52,7 +52,10 @@ import com.google.accompanist.permissions.rememberPermissionState
 import com.google.accompanist.permissions.shouldShowRationale
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import me.zhanghai.compose.preference.LocalPreferenceFlow
+import me.zhanghai.compose.preference.ProvidePreferenceFlow
 import og.ogstartracker.Config
+import og.ogstartracker.Config.PREFERENCES_TRACKING_MODE
 import og.ogstartracker.Config.SCREEN_SETTINGS
 import og.ogstartracker.R
 import og.ogstartracker.domain.events.ExpositionTesterEvent
@@ -334,13 +337,18 @@ private fun DashboardScreenLayout(
 		}
 
 		item {
-			SiderealCard(
-				active = uiState.siderealActive,
-				onCheckChanged = {
-					onSiderealClicked(!uiState.siderealActive)
-				},
-				enabled = uiState.wifiConnected,
-			)
+			ProvidePreferenceFlow {
+				val trackingModeValue = LocalPreferenceFlow.current.value[PREFERENCES_TRACKING_MODE] ?: ""
+
+				SiderealCard(
+					active = uiState.siderealActive,
+					onCheckChanged = {
+						onSiderealClicked(!uiState.siderealActive)
+					},
+					enabled = uiState.wifiConnected,
+					trackingMode = trackingModeValue,
+				)
+			}
 		}
 
 		item {

@@ -42,8 +42,8 @@
 	<string name="exposure_test_estimate">Estimated testing time</string>
 	<string name="exposure_test_start">Start testing</string>
 	<string name="exposure_test_end">End testing</string>
-	<string name="sidereal_tracking_title">Sidereal Tracking</string>
-	<string name="sidereal_tracking_subtitle">Compensate for Earth’s rotation</string>
+	<string name="sidereal_tracking_title">Tracking</string>
+	<string name="sidereal_tracking_subtitle">Compensate for Earth’s rotation\nMode: %s</string>
 	<string name="slew_control_title">Slew Control</string>
 	<string name="slew_control_subtitle">Manually Rotate Tracker</string>
 	<string name="slew_control_step_size">Step Size</string>
@@ -60,5 +60,9 @@
 	<string name="settings_tracker_firmware">Tracker Firmware</string>
 	<string name="settings_tracker_firmware_cannot_detect">Cannot detekt</string>
 	<string name="settings_android_version">Android App</string>
+	<string name="settings_tracking_mode">Tracking Mode</string>
+	<string name="settings_tracking_mode_sidereal">Sidereal (23h 56 min 4s)</string>
+	<string name="settings_tracking_mode_solar">Solar (24h)</string>
+	<string name="settings_tracking_mode_lunar">Lunar (24h, 31 min)</string>
 
 </resources>

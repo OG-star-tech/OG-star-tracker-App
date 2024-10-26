@@ -19,7 +19,7 @@ import og.ogstartracker.domain.events.ExpositionTesterEvent
 import og.ogstartracker.domain.events.PhotoControlEvent
 import og.ogstartracker.domain.events.SlewControlEvent
 import og.ogstartracker.domain.models.CheckListItem
-import og.ogstartracker.domain.models.Hemisphere
+import og.ogstartracker.domain.models.TrackingMode
 import og.ogstartracker.domain.usecases.arduino.StartCaptureUseCase
 import og.ogstartracker.domain.usecases.providers.DashboardUseCaseProvider
 import og.ogstartracker.domain.usecases.settings.SetNewSettingsUseCase
@@ -99,12 +99,10 @@ class DashboardViewModel internal constructor(
 	private val _uiState = MutableStateFlow(DashboardUiState())
 	val uiState = combine(
 		_uiState,
-		useCases.getCurrentHemisphereFlow(),
 		useCases.didUserSeeOnboarding(),
 		useCases.getLastArduinoMessage()
-	) { uiState, hemisphere, userSawOnboarding, lastMessage ->
+	) { uiState, userSawOnboarding, lastMessage ->
 		uiState.copy(
-			hemisphere = hemisphere,
 			shouldShowOnboardingDialog = !userSawOnboarding,
 			lastMessage = lastMessage
 		)
@@ -127,7 +125,7 @@ class DashboardViewModel internal constructor(
 	internal fun changeSidereal(active: Boolean) {
 		if (active) {
 			sendCommand {
-				useCases.startSiderealTracking(uiState.value.hemisphere ?: return@sendCommand).onSuccess {
+				useCases.startSiderealTracking().onSuccess {
 					vibratorController.startVibrations(vibrationPatternThreeClick)
 					_uiState.update { it.copy(siderealActive = true) }
 				}
@@ -511,7 +509,6 @@ class DashboardViewModel internal constructor(
 }
 
 data class DashboardUiState internal constructor(
-	val hemisphere: Hemisphere? = null,
 	val wifiConnected: Boolean = false,
 	val haveLocationPermission: Boolean = false,
 	val openedCheckbox: Boolean = false,
@@ -521,6 +518,7 @@ data class DashboardUiState internal constructor(
 	val exposureTestingActive: Boolean = false,
 	val lastMessage: String? = null,
 	val slewValue: Int = 0,
+	val trackingMode: TrackingMode = TrackingMode.SIDEREAL,
 	// photo control
 	val captureStartTime: Long? = null,
 	val captureCount: Int? = null,
