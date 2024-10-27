@@ -1,11 +1,13 @@
 package og.ogstartracker.ui.screens
 
+import android.Manifest
 import android.content.Context
 import android.content.Intent
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.net.Uri
 import android.net.wifi.WifiManager
+import android.os.Build
 import android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS
 import android.provider.Settings.ACTION_WIFI_SETTINGS
 import androidx.compose.foundation.layout.Arrangement
@@ -44,11 +46,11 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavController
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import com.google.accompanist.permissions.PermissionState
+import com.google.accompanist.permissions.MultiplePermissionsState
 import com.google.accompanist.permissions.PermissionStatus
-import com.google.accompanist.permissions.isGranted
-import com.google.accompanist.permissions.rememberPermissionState
+import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.google.accompanist.permissions.shouldShowRationale
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import me.zhanghai.compose.preference.LocalPreferenceFlow
@@ -86,6 +88,8 @@ import og.ogstartracker.utils.HardwareStatusService
 import og.ogstartracker.utils.SystemUiHelper
 import org.koin.androidx.compose.koinViewModel
 
+private const val RESET_TRACKING_DELAY = 1000L
+
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun DashboardScreen(
@@ -99,9 +103,12 @@ fun DashboardScreen(
 
 	val uiState by viewModel.uiState.collectAsState()
 
-	val fineLocationPermissionState = rememberPermissionState(
-		android.Manifest.permission.ACCESS_FINE_LOCATION
-	)
+	val permissionList = mutableListOf(Manifest.permission.ACCESS_FINE_LOCATION)
+	if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+		permissionList.add(Manifest.permission.POST_NOTIFICATIONS)
+	}
+
+	val fineLocationPermissionState = rememberMultiplePermissionsState(permissionList)
 
 	val checkWifi by viewModel.checkWifiEvent.collectAsState()
 	if (checkWifi) {
@@ -157,18 +164,19 @@ fun DashboardScreen(
 
 			when {
 				// user permanently banned location, navigate to app settings
-				fineLocationPermissionState.status == PermissionStatus.Denied(shouldShowRationale = true) ->
+				fineLocationPermissionState.permissions.any { it.status == PermissionStatus.Denied(shouldShowRationale = true) } ->
 					context.startActivity(Intent(ACTION_APPLICATION_DETAILS_SETTINGS).apply {
 						setData(Uri.fromParts("package", context.packageName, null))
 					})
 
 				// user did not enabled location, request
-				!fineLocationPermissionState.status.isGranted && !fineLocationPermissionState.status.shouldShowRationale -> {
-					fineLocationPermissionState.launchPermissionRequest()
+				!fineLocationPermissionState.allPermissionsGranted
+					&& !fineLocationPermissionState.permissions.all { it.status.shouldShowRationale } -> {
+					fineLocationPermissionState.launchMultiplePermissionRequest()
 				}
 
 				// user enabled location, but is on wrong wifi, open settings
-				fineLocationPermissionState.status.isGranted -> {
+				fineLocationPermissionState.allPermissionsGranted -> {
 					context.startActivity(Intent(ACTION_WIFI_SETTINGS))
 				}
 			}
@@ -188,12 +196,12 @@ fun DashboardScreen(
 @OptIn(ExperimentalPermissionsApi::class)
 private fun checkLocationPermission(
 	viewModel: DashboardViewModel,
-	fineLocationPermissionState: PermissionState,
+	fineLocationPermissionStates: MultiplePermissionsState,
 	context: Context
 ) {
-	viewModel.setHaveLocationPermission(fineLocationPermissionState.status.isGranted)
+	viewModel.setHaveLocationPermission(fineLocationPermissionStates.allPermissionsGranted)
 
-	fineLocationPermissionState.status.isGranted.let {
+	fineLocationPermissionStates.allPermissionsGranted.let {
 		// detect if user is on the correct wifi
 		if (checkWifiConnection(context, viewModel)) return@let
 	}
@@ -350,6 +358,15 @@ private fun DashboardScreenLayout(
 
 				val hemisphere = LocalPreferenceFlow.current.value[PREFERENCES_HEMISPHERE]
 					?: stringResource(Hemisphere.NORTH.text)
+
+				LaunchedEffect(trackingModeValue, hemisphere) {
+					// detect changes in tracking mode and hemisphere and reset tracking
+					if (uiState.siderealActive) {
+						onSiderealClicked(false)
+						delay(RESET_TRACKING_DELAY)
+						onSiderealClicked(true)
+					}
+				}
 
 				SiderealCard(
 					active = uiState.siderealActive,

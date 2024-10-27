@@ -60,7 +60,7 @@
 	<string name="settings_vibrations">Vibrations</string>
 	<string name="settings_version_info">Version Info</string>
 	<string name="settings_tracker_firmware">Tracker Firmware</string>
-	<string name="settings_tracker_firmware_cannot_detect">Cannot detekt</string>
+	<string name="settings_tracker_firmware_cannot_detect">Cannot detect</string>
 	<string name="settings_android_version">Android App</string>
 	<string name="settings_tracking_mode">Tracking Mode</string>
 	<string name="settings_tracking_mode_sidereal">Sidereal (23h 56 min 4s)</string>
