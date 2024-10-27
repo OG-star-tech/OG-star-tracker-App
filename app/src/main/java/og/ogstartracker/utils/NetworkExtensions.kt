@@ -8,6 +8,7 @@ import retrofit2.HttpException
 import retrofit2.Response
 import timber.log.Timber
 import java.io.IOException
+import java.net.ProtocolException
 import java.net.SocketTimeoutException
 import java.net.UnknownHostException
 
@@ -22,7 +23,7 @@ suspend fun <E : Any> tryOnline(
 			ResourceUtils.success(response.body())
 		} else {
 			//don't handle any errors
-			ResourceUtils.success()
+			ResourceUtils.error(ErrorIdentificationImpl.ConnectionProblem)
 		}
 	} catch (e: HttpException) {
 		Timber.e(e)
@@ -35,7 +36,11 @@ suspend fun <E : Any> tryOnline(
 		ResourceUtils.error(ErrorIdentificationImpl.ConnectionProblem)
 	} catch (e: IOException) {
 		Timber.e(e)
-		ResourceUtils.error(ErrorIdentificationImpl.Unknown)
+		if (e is ProtocolException) {
+			ResourceUtils.error(ErrorIdentificationImpl.NoContent)
+		} else {
+			ResourceUtils.error(ErrorIdentificationImpl.Unknown)
+		}
 	} catch (e: JsonDataException) {
 		Timber.e(e)
 		ResourceUtils.error(ErrorIdentificationImpl.Unknown)

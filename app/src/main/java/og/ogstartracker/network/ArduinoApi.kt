@@ -32,6 +32,7 @@ interface ArduinoApi {
 		@Query("focalLength") focalLength: Int,
 		@Query("pixSize") pixSize: Int,
 		@Query("ditherEnabled") ditherEnabled: Int,
+		@Query("disableTracking") disableTracking: Int,
 	): Response<String>
 
 	@GET("abort")

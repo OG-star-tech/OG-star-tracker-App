@@ -8,7 +8,6 @@ import android.net.Uri
 import android.net.wifi.WifiManager
 import android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS
 import android.provider.Settings.ACTION_WIFI_SETTINGS
-import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -83,6 +82,7 @@ import og.ogstartracker.ui.theme.DimensNormal75
 import og.ogstartracker.ui.theme.DimensSmall100
 import og.ogstartracker.ui.theme.DimensSmall50
 import og.ogstartracker.ui.theme.textStyle20Bold
+import og.ogstartracker.utils.HardwareStatusService
 import og.ogstartracker.utils.SystemUiHelper
 import org.koin.androidx.compose.koinViewModel
 
@@ -119,8 +119,7 @@ fun DashboardScreen(
 	)
 
 	LaunchedEffect(uiState.lastMessage) {
-		uiState.lastMessage?.let { message ->
-			Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+		uiState.lastMessage?.let { _ ->
 			viewModel.resetMessage()
 		}
 	}
@@ -212,6 +211,11 @@ private fun checkWifiConnection(
 
 		val correctWifi = wifiManager.connectionInfo.ssid == Config.WIFI_SSID
 		viewModel.setConnection(correctWifi)
+
+		if (correctWifi) {
+			val serviceIntent = Intent(context, HardwareStatusService::class.java)
+			context.startForegroundService(serviceIntent)
+		}
 	}
 	return false
 }

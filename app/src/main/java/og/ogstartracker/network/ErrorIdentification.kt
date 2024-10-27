@@ -6,5 +6,6 @@ open class ErrorIdentification constructor(
 	companion object {
 		const val CONNECTION_PROBLEM = 1
 		const val CODE_UNKNOWN = -1
+		const val CODE_NO_CONTENT = -2
 	}
 }

@@ -64,6 +64,7 @@ import og.ogstartracker.utils.toSeconds
 import java.text.DecimalFormat
 import java.time.Instant
 import java.time.ZoneId
+import kotlin.math.roundToInt
 
 private val formatter = DecimalFormat("00")
 
@@ -254,7 +255,10 @@ fun PhotoControlCard(
 				},
 				onValueChange = {
 					uiState.ditherPixelSize.setNewState(it)
-					notifyAboutChange(SettingItem.PIXEL_SIZE, it.text.toIntOrNull())
+					notifyAboutChange(
+						SettingItem.PIXEL_SIZE,
+						it.text.toDoubleOrNull()?.times(100)?.roundToInt()
+					)
 				}
 			)
 		}

@@ -20,6 +20,10 @@ sealed class ErrorIdentificationImpl constructor(
 		code = CODE_UNKNOWN
 	)
 
+	data object NoContent : ErrorIdentificationImpl(
+		code = CODE_NO_CONTENT
+	)
+
 	companion object {
 		fun parseErrorCodes(
 			code: Int,

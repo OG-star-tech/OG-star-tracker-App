@@ -1,11 +1,15 @@
 package og.ogstartracker.domain.usecases.arduino
 
-import og.ogstartracker.domain.usecases.base.ResourceSuspendProviderUseCase
+import og.ogstartracker.domain.usecases.base.ResourceSuspendUseCase
 import og.ogstartracker.repository.ArduinoRepository
 
 class GetCurrentStateUseCase constructor(
 	private val repository: ArduinoRepository
-) : ResourceSuspendProviderUseCase<String> {
+) : ResourceSuspendUseCase<GetCurrentStateUseCase.Input, String> {
 
-	override suspend fun invoke() = repository.getStatus()
+	override suspend fun invoke(input: Input) = repository.getStatus(input.showInUI)
+
+	data class Input constructor(
+		val showInUI: Boolean = true,
+	)
 }
