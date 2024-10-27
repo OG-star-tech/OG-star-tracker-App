@@ -9,6 +9,7 @@
 	<string name="dialog_close">Close</string>
 	<string name="connection_hint">- Connect to WiFi: OG Star Tracker\n  Password: password123</string>
 	<string name="location_hint">- Enable Location</string>
+	<string name="notification_hint">- Enable Notifications</string>
 	<string name="photo_control_title">Photo Control</string>
 	<string name="photo_control_subtitle">Send Automated Commands to your camera</string>
 	<string name="photo_control_intervalometer">INTERVALOMETER SETTINGS</string>

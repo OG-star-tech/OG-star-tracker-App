@@ -457,6 +457,13 @@ class DashboardViewModel internal constructor(
 	}
 
 	/**
+	 * Track value if user did allow notification permission.
+	 */
+	internal fun setHaveNotificationPermission(active: Boolean) {
+		_uiState.update { it.copy(haveNotificationPermission = active) }
+	}
+
+	/**
 	 * Track value if user have wifi connection.
 	 */
 	internal fun setConnection(wifiConnected: Boolean) {
@@ -529,6 +536,7 @@ class DashboardViewModel internal constructor(
 data class DashboardUiState internal constructor(
 	val wifiConnected: Boolean = false,
 	val haveLocationPermission: Boolean = false,
+	val haveNotificationPermission: Boolean = false,
 	val openedCheckbox: Boolean = false,
 	val siderealActive: Boolean = false,
 	val ditheringEnabled: Boolean = false,
