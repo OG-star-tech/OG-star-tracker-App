@@ -16,6 +16,7 @@ class GetSettingsUseCase constructor(
 			SettingItem.DITHER_ACTIVE -> dataStoreRepository.ditherActive
 			SettingItem.FOCAL_LENGTH -> dataStoreRepository.focalLength
 			SettingItem.PIXEL_SIZE -> dataStoreRepository.pixelSize
+			SettingItem.STOP_TRACKING -> dataStoreRepository.stopTrackerActive
 		}
 	}
 }

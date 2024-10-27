@@ -9,7 +9,7 @@ interface ArduinoApi {
 	@GET("on")
 	suspend fun startSiderealTracking(
 		@Query("direction") direction: Int,
-		@Query("tspeed") tspeed: Int,
+		@Query("trackingSpeed") tspeed: Int,
 	): Response<String>
 
 	@GET("off")

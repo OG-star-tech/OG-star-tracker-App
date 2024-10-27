@@ -55,6 +55,7 @@ import kotlinx.coroutines.launch
 import me.zhanghai.compose.preference.LocalPreferenceFlow
 import me.zhanghai.compose.preference.ProvidePreferenceFlow
 import og.ogstartracker.Config
+import og.ogstartracker.Config.PREFERENCES_HEMISPHERE
 import og.ogstartracker.Config.PREFERENCES_TRACKING_MODE
 import og.ogstartracker.Config.SCREEN_SETTINGS
 import og.ogstartracker.R
@@ -62,6 +63,8 @@ import og.ogstartracker.domain.events.ExpositionTesterEvent
 import og.ogstartracker.domain.events.PhotoControlEvent
 import og.ogstartracker.domain.events.SlewControlEvent
 import og.ogstartracker.domain.models.CheckListItem
+import og.ogstartracker.domain.models.Hemisphere
+import og.ogstartracker.domain.models.TrackingMode
 import og.ogstartracker.domain.usecases.settings.SettingItem
 import og.ogstartracker.ui.components.InfoDialog
 import og.ogstartracker.ui.components.cards.ChecklistCard
@@ -140,7 +143,7 @@ fun DashboardScreen(
 	DashboardScreenContent(
 		uiState = uiState,
 		onChecklistClicked = viewModel::changeChecklist,
-		onSiderealClicked = viewModel::changeSidereal,
+		onSiderealClicked = viewModel::changeTracking,
 		onSlewControlEvent = viewModel::slewControlEvent,
 		onPhotoControlEvent = viewModel::photoControlEvent,
 		onGearClick = {
@@ -338,7 +341,11 @@ private fun DashboardScreenLayout(
 
 		item {
 			ProvidePreferenceFlow {
-				val trackingModeValue = LocalPreferenceFlow.current.value[PREFERENCES_TRACKING_MODE] ?: ""
+				val trackingModeValue = LocalPreferenceFlow.current.value[PREFERENCES_TRACKING_MODE]
+					?: stringResource(TrackingMode.SIDEREAL.text)
+
+				val hemisphere = LocalPreferenceFlow.current.value[PREFERENCES_HEMISPHERE]
+					?: stringResource(Hemisphere.NORTH.text)
 
 				SiderealCard(
 					active = uiState.siderealActive,
@@ -347,6 +354,7 @@ private fun DashboardScreenLayout(
 					},
 					enabled = uiState.wifiConnected,
 					trackingMode = trackingModeValue,
+					hemisphere = hemisphere,
 				)
 			}
 		}

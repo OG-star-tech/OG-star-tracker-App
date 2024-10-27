@@ -48,6 +48,13 @@ interface DataStoreRepository {
 	val ditherActive: Flow<Int>
 
 	/**
+	 * The stop tracker active status currently set in the settings.
+	 *
+	 * This is a Flow that emits the current stop tracker active status set in the settings. If stopping is active, the value is 1. If not, the value is 0.
+	 */
+	val stopTrackerActive: Flow<Int>
+
+	/**
 	 * The status of whether the user has seen the onboarding.
 	 *
 	 * This is a Flow that emits the current status of whether the user has seen the onboarding. If the user has seen the onboarding, the value is true. If not, the value is false.

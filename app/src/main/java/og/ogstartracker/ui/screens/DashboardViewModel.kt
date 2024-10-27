@@ -69,7 +69,8 @@ class DashboardViewModel internal constructor(
 		useCases.getSettings(SettingItem.EXPOSURE_TIME),
 		useCases.getSettings(SettingItem.DITHER_ACTIVE),
 		useCases.getSettings(SettingItem.SLEW_SPEED),
-	) { pixelSize, focalLength, exposureCount, exposureTime, ditherActive, slewSpeed ->
+		useCases.getSettings(SettingItem.STOP_TRACKING),
+	) { pixelSize, focalLength, exposureCount, exposureTime, ditherActive, slewSpeed, stopTracking ->
 		_uiState.update {
 			it.copy(
 				exposeTime = TextFieldState(text = exposureTime?.toString() ?: "", NotEmptyValidator()),
@@ -77,7 +78,8 @@ class DashboardViewModel internal constructor(
 				ditherFocalLength = TextFieldState(text = focalLength?.toString() ?: "", NotEmptyValidator()),
 				ditherPixelSize = TextFieldState(text = pixelSize?.toString() ?: "", NotEmptyValidator()),
 				slewValue = slewSpeed ?: 0,
-				ditheringEnabled = ditherActive == 1
+				ditheringEnabled = ditherActive == 1,
+				stopTrackingEnabled = stopTracking == 1,
 			)
 		}
 		return@combine
@@ -120,9 +122,9 @@ class DashboardViewModel internal constructor(
 	}
 
 	/**
-	 * This enables or disables sidereal tracking.
+	 * This enables or disables tracking.
 	 */
-	internal fun changeSidereal(active: Boolean) {
+	internal fun changeTracking(active: Boolean) {
 		if (active) {
 			sendCommand {
 				useCases.startSiderealTracking().onSuccess {
@@ -234,6 +236,19 @@ class DashboardViewModel internal constructor(
 						startPhotoCaptureTimer()
 						vibratorController.startVibrations(vibrationPatternThreeClick)
 					}
+				}
+			}
+
+			is PhotoControlEvent.StopTrackingActivation -> {
+				_uiState.update {
+					it.copy(
+						stopTrackingEnabled = photoControlEvent.active,
+					)
+				}
+				if (photoControlEvent.active) {
+					vibratorController.startVibrations(vibrationPatternThreeClick)
+				} else {
+					vibratorController.startVibrations(vibrationPatternClick)
 				}
 			}
 		}
@@ -403,6 +418,10 @@ class DashboardViewModel internal constructor(
 
 			stopPhotoCaptureTimer()
 			photoControlEvent(PhotoControlEvent.EndCapture)
+
+			if (uiState.value.stopTrackingEnabled) {
+				changeTracking(false)
+			}
 		}
 	}
 
@@ -514,6 +533,7 @@ data class DashboardUiState internal constructor(
 	val openedCheckbox: Boolean = false,
 	val siderealActive: Boolean = false,
 	val ditheringEnabled: Boolean = false,
+	val stopTrackingEnabled: Boolean = false,
 	val capturingActive: Boolean = false,
 	val exposureTestingActive: Boolean = false,
 	val lastMessage: String? = null,

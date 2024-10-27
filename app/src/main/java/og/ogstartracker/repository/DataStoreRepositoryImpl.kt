@@ -36,6 +36,9 @@ class DataStoreRepositoryImpl constructor(
 	override val ditherActive: Flow<Int> = context.dataStore.data
 		.map { preferences -> preferences[SETTINGS_DITHER_ACTIVE] ?: 0 }
 
+	override val stopTrackerActive: Flow<Int> = context.dataStore.data
+		.map { preferences -> preferences[SETTINGS_STOP_TRACKER_ACTIVE] ?: 0 }
+
 	override val userSawOnboarding: Flow<Boolean> = context.dataStore.data
 		.map { preferences -> preferences[USER_SAW_ONBOARDING] ?: false }
 
@@ -49,6 +52,7 @@ class DataStoreRepositoryImpl constructor(
 				SettingItem.DITHER_ACTIVE -> preferences[SETTINGS_DITHER_ACTIVE] = value ?: 0
 				SettingItem.FOCAL_LENGTH -> preferences[SETTINGS_FOCUS_LENGTH] = value ?: -1
 				SettingItem.PIXEL_SIZE -> preferences[SETTINGS_PIXEL_SIZE] = value ?: -1
+				SettingItem.STOP_TRACKING -> preferences[SETTINGS_STOP_TRACKER_ACTIVE] = value ?: 0
 			}
 		}
 	}
@@ -67,6 +71,7 @@ class DataStoreRepositoryImpl constructor(
 		private val SETTINGS_FOCUS_LENGTH = intPreferencesKey("focus_length")
 		private val SETTINGS_PIXEL_SIZE = intPreferencesKey("pixel_size")
 		private val SETTINGS_DITHER_ACTIVE = intPreferencesKey("dither_active")
+		private val SETTINGS_STOP_TRACKER_ACTIVE = intPreferencesKey("stop_tracking_active")
 		private val USER_SAW_ONBOARDING = booleanPreferencesKey("onboarding")
 	}
 }

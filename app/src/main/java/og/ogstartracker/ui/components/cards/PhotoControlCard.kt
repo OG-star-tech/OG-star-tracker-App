@@ -263,6 +263,41 @@ fun PhotoControlCard(
 			modifier = Modifier.padding(vertical = DimensNormal100)
 		)
 
+		Row(
+			verticalAlignment = Alignment.CenterVertically,
+		) {
+			Column(
+				modifier = Modifier
+					.weight(1f)
+					.padding(start = DimensNormal100)
+			) {
+				Text(
+					text = stringResource(id = R.string.photo_control_disable_tracking_title).uppercase(),
+					style = textStyle16Bold,
+					color = ColorPrimary
+				)
+				Text(
+					text = stringResource(id = R.string.photo_control_disable_tracking_subtitle),
+					style = textStyle10ItalicBold,
+					color = ColorSecondary
+				)
+			}
+
+			CustomSwitch(
+				checked = uiState.stopTrackingEnabled,
+				onCheckChange = {
+					onPhotoControlEvent(PhotoControlEvent.StopTrackingActivation(!uiState.stopTrackingEnabled))
+					notifyAboutChange(SettingItem.STOP_TRACKING, if (it) 1 else 0)
+				},
+				modifier = Modifier.padding(end = DimensNormal100),
+				enabled = !uiState.capturingActive && uiState.wifiConnected,
+			)
+		}
+
+		Divider(
+			modifier = Modifier.padding(vertical = DimensNormal100)
+		)
+
 		if (uiState.capturingActive) {
 			CaptureInfo(uiState = uiState)
 		}

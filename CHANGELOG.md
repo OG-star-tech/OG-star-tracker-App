@@ -4,6 +4,8 @@
 
 - add multiple tracking modes (sidereal, solar and lunar)
 - fixed bug when hemisphere setting was ignored (sorry about that)
+- add option to disable tracking when intervalometer finishes
+- tracking info on main screen now shows current settings for hemisphere and tracking mode
 
 ## [1.0.4]
 
