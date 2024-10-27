@@ -12,8 +12,8 @@ android {
 	namespace = packageName
 	compileSdk = 34
 
-	val buildVersionCode = Integer.parseInt(System.getenv("VERSION_CODE") ?: "5")
-	val buildVersionName = System.getenv("VERSION_NAME") ?: "1.0.4"
+	val buildVersionCode = Integer.parseInt(System.getenv("VERSION_CODE") ?: "6")
+	val buildVersionName = System.getenv("VERSION_NAME") ?: "1.0.5"
 
 	defaultConfig {
 		applicationId = packageName

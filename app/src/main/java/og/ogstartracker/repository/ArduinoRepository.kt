@@ -2,6 +2,7 @@ package og.ogstartracker.repository
 
 import kotlinx.coroutines.flow.StateFlow
 import og.ogstartracker.domain.models.Hemisphere
+import og.ogstartracker.domain.models.TrackingMode
 import og.ogstartracker.network.Resource
 
 interface ArduinoRepository {
@@ -20,11 +21,15 @@ interface ArduinoRepository {
 	 * of view for a longer period of time.
 	 *
 	 * @param direction The direction of the hemisphere. This can be either northern or southern hemisphere.
+	 * @param trackingMode The mode of tracking. This can be sidereal, lunar, or solar tracking mode.
 	 * @return A Resource object that contains a String. If the operation is successful, the String will be a success
 	 * message. If the operation fails, the String will be an error message.
 	 * @throws Exception If there is a problem with the communication with the Arduino, an exception will be thrown.
 	 */
-	suspend fun startSideRealTracking(direction: Hemisphere): Resource<String>
+	suspend fun startSideRealTracking(
+		direction: Hemisphere,
+		trackingMode: TrackingMode,
+	): Resource<String>
 
 	/**
 	 * Stops the sidereal tracking.

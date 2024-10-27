@@ -9,7 +9,6 @@ import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import og.ogstartracker.domain.models.Hemisphere
 import og.ogstartracker.domain.usecases.settings.SettingItem
 import timber.log.Timber
 
@@ -18,13 +17,6 @@ class DataStoreRepositoryImpl constructor(
 ) : DataStoreRepository {
 
 	private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = PREFS_DATA_STORE_NAME)
-
-	override val hemisphere: Flow<Hemisphere> = context.dataStore.data
-		.map { preferences ->
-			Hemisphere.entries.firstOrNull {
-				it.arduinoValue == preferences[HEMISPHERE]
-			} ?: Hemisphere.NORTH
-		}
 
 	override val exposureTime: Flow<Int?> = context.dataStore.data
 		.map { preferences -> preferences[SETTINGS_EXPOSURE_TIME].takeIf { it != -1 } }
@@ -44,14 +36,11 @@ class DataStoreRepositoryImpl constructor(
 	override val ditherActive: Flow<Int> = context.dataStore.data
 		.map { preferences -> preferences[SETTINGS_DITHER_ACTIVE] ?: 0 }
 
+	override val stopTrackerActive: Flow<Int> = context.dataStore.data
+		.map { preferences -> preferences[SETTINGS_STOP_TRACKER_ACTIVE] ?: 0 }
+
 	override val userSawOnboarding: Flow<Boolean> = context.dataStore.data
 		.map { preferences -> preferences[USER_SAW_ONBOARDING] ?: false }
-
-	override suspend fun updateHemisphere(hemisphere: Hemisphere) {
-		context.dataStore.edit { preferences ->
-			preferences[HEMISPHERE] = hemisphere.arduinoValue
-		}
-	}
 
 	override suspend fun setNewSettings(settingItem: SettingItem, value: Int?) {
 		Timber.d("setNewSettings, settingItem: $settingItem, value: $value")
@@ -63,6 +52,7 @@ class DataStoreRepositoryImpl constructor(
 				SettingItem.DITHER_ACTIVE -> preferences[SETTINGS_DITHER_ACTIVE] = value ?: 0
 				SettingItem.FOCAL_LENGTH -> preferences[SETTINGS_FOCUS_LENGTH] = value ?: -1
 				SettingItem.PIXEL_SIZE -> preferences[SETTINGS_PIXEL_SIZE] = value ?: -1
+				SettingItem.STOP_TRACKING -> preferences[SETTINGS_STOP_TRACKER_ACTIVE] = value ?: 0
 			}
 		}
 	}
@@ -75,13 +65,13 @@ class DataStoreRepositoryImpl constructor(
 
 	companion object {
 		private const val PREFS_DATA_STORE_NAME = "store"
-		private val HEMISPHERE = intPreferencesKey("hemisphere")
 		private val SETTINGS_SLEW_SPEED = intPreferencesKey("slew_speed")
 		private val SETTINGS_EXPOSURE_TIME = intPreferencesKey("exposure_time")
 		private val SETTINGS_EXPOSURE_COUNT = intPreferencesKey("exposure_count")
 		private val SETTINGS_FOCUS_LENGTH = intPreferencesKey("focus_length")
 		private val SETTINGS_PIXEL_SIZE = intPreferencesKey("pixel_size")
 		private val SETTINGS_DITHER_ACTIVE = intPreferencesKey("dither_active")
+		private val SETTINGS_STOP_TRACKER_ACTIVE = intPreferencesKey("stop_tracking_active")
 		private val USER_SAW_ONBOARDING = booleanPreferencesKey("onboarding")
 	}
 }

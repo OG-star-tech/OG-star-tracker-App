@@ -9,4 +9,8 @@ sealed class PhotoControlEvent {
 	data object StartCapture : PhotoControlEvent()
 
 	data object EndCapture : PhotoControlEvent()
+
+	data class StopTrackingActivation constructor(
+		val active: Boolean
+	) : PhotoControlEvent()
 }

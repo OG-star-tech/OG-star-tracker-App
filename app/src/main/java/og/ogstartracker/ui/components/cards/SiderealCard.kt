@@ -26,6 +26,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import og.ogstartracker.Constants
 import og.ogstartracker.R
+import og.ogstartracker.domain.models.Hemisphere
+import og.ogstartracker.domain.models.TrackingMode
 import og.ogstartracker.ui.components.common.CustomSwitch
 import og.ogstartracker.ui.theme.AppTheme
 import og.ogstartracker.ui.theme.ColorBackground
@@ -41,9 +43,11 @@ import og.ogstartracker.utils.segmentedShadow
 @Composable
 fun SiderealCard(
 	enabled: Boolean,
+	trackingMode: String,
 	active: Boolean,
 	onCheckChanged: (Boolean) -> Unit,
 	modifier: Modifier = Modifier,
+	hemisphere: String,
 ) {
 	val infiniteTransition = rememberInfiniteTransition(label = "")
 	val color by infiniteTransition.animateColor(
@@ -86,9 +90,11 @@ fun SiderealCard(
 					color = ColorPrimary
 				)
 				Text(
-					text = stringResource(id = R.string.sidereal_tracking_subtitle),
+					text = stringResource(
+						id = R.string.sidereal_tracking_subtitle, trackingMode.uppercase(), hemisphere.uppercase()
+					),
 					style = textStyle10ItalicBold,
-					color = ColorSecondary
+					color = ColorSecondary,
 				)
 			}
 
@@ -108,14 +114,18 @@ fun SiderealCardPreview() {
 	AppTheme {
 		Column {
 			SiderealCard(
-				onCheckChanged = {},
+				enabled = true,
+				trackingMode = stringResource(TrackingMode.SIDEREAL.text),
 				active = true,
-				enabled = true
+				onCheckChanged = {},
+				hemisphere = stringResource(Hemisphere.NORTH.text),
 			)
 			SiderealCard(
-				onCheckChanged = {},
+				enabled = true,
+				trackingMode = stringResource(TrackingMode.SIDEREAL.text),
 				active = false,
-				enabled = true
+				onCheckChanged = {},
+				hemisphere = stringResource(Hemisphere.NORTH.text),
 			)
 		}
 	}

@@ -32,6 +32,8 @@
 	<string name="photo_control_elapsed_time_hour">h</string>
 	<string name="photo_control_elapsed_time_minute">m</string>
 	<string name="photo_control_elapsed_time_second">s</string>
+	<string name="photo_control_disable_tracking_title">Disable tracking on end</string>
+	<string name="photo_control_disable_tracking_subtitle">Stops your tracker rotation when intervalometer has finished.</string>
 	<string name="exposure_test_title">Exposition tester</string>
 	<string name="exposure_test_subtitle">Find the longest exposition time for your setup</string>
 	<string name="exposure_test_info">Pick your minimal and maximal exposition time and step size with delay time. Tracker will then command your camera to take these expositions. Finally you can check your camera and decide what is the best time for you.\n\nExample: min 45s, max 100s, step size 10s, delay 5s:\nCamera will capture 45s, 5s wait, 55s, 5s wait, … 100s.\n\nYou need to connect your tracker to camera with cable!</string>
@@ -42,8 +44,8 @@
 	<string name="exposure_test_estimate">Estimated testing time</string>
 	<string name="exposure_test_start">Start testing</string>
 	<string name="exposure_test_end">End testing</string>
-	<string name="sidereal_tracking_title">Sidereal Tracking</string>
-	<string name="sidereal_tracking_subtitle">Compensate for Earth’s rotation</string>
+	<string name="sidereal_tracking_title">Tracking</string>
+	<string name="sidereal_tracking_subtitle">Compensate for Earth’s rotation\n\nMode: %s\nHemisphere: %s</string>
 	<string name="slew_control_title">Slew Control</string>
 	<string name="slew_control_subtitle">Manually Rotate Tracker</string>
 	<string name="slew_control_step_size">Step Size</string>
@@ -60,5 +62,9 @@
 	<string name="settings_tracker_firmware">Tracker Firmware</string>
 	<string name="settings_tracker_firmware_cannot_detect">Cannot detekt</string>
 	<string name="settings_android_version">Android App</string>
+	<string name="settings_tracking_mode">Tracking Mode</string>
+	<string name="settings_tracking_mode_sidereal">Sidereal (23h 56 min 4s)</string>
+	<string name="settings_tracking_mode_solar">Solar (24h)</string>
+	<string name="settings_tracking_mode_lunar">Lunar (24h, 31 min)</string>
 
 </resources>

@@ -13,17 +13,17 @@ import og.ogstartracker.domain.usecases.arduino.TurnTrackerRightUseCase
 import og.ogstartracker.domain.usecases.onboarding.DidUserSeeOnboardingUseCase
 import og.ogstartracker.domain.usecases.onboarding.SetUserSawOnboardingUseCase
 import og.ogstartracker.domain.usecases.providers.DashboardUseCaseProvider
-import og.ogstartracker.domain.usecases.settings.GetCurrentHemisphereFlowUseCase
 import og.ogstartracker.domain.usecases.settings.GetSettingsUseCase
-import og.ogstartracker.domain.usecases.settings.SetCurrentHemisphereUseCase
 import og.ogstartracker.domain.usecases.settings.SetNewSettingsUseCase
+import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module
 
 val useCaseModule = module {
 
 	single {
 		StartSiderealTrackingUseCase(
-			repository = get()
+			repository = get(),
+			context = androidContext(),
 		)
 	}
 
@@ -60,18 +60,6 @@ val useCaseModule = module {
 	single {
 		GetCurrentStateUseCase(
 			repository = get()
-		)
-	}
-
-	single {
-		GetCurrentHemisphereFlowUseCase(
-			dataStoreRepository = get()
-		)
-	}
-
-	single {
-		SetCurrentHemisphereUseCase(
-			dataStoreRepository = get()
 		)
 	}
 
@@ -130,10 +118,9 @@ val useCaseModule = module {
 			trackerRight = get(),
 			stopSiderealTracking = get(),
 			trackerLeft = get(),
-			getCurrentHemisphereFlow = get(),
 			startSiderealTracking = get(),
 			getCurrentState = get(),
-			getVersion = get()
+			getVersion = get(),
 		)
 	}
 }

@@ -13,9 +13,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
@@ -29,9 +26,11 @@ import me.zhanghai.compose.preference.listPreference
 import me.zhanghai.compose.preference.preference
 import me.zhanghai.compose.preference.preferenceCategory
 import og.ogstartracker.Config.PREFERENCES_HEMISPHERE
+import og.ogstartracker.Config.PREFERENCES_TRACKING_MODE
 import og.ogstartracker.Config.PREFERENCES_VIBRATIONS
 import og.ogstartracker.R
 import og.ogstartracker.domain.models.Hemisphere
+import og.ogstartracker.domain.models.TrackingMode
 import og.ogstartracker.ui.theme.AppTheme
 import og.ogstartracker.ui.theme.DimensNormal100
 import og.ogstartracker.ui.theme.textStyle14Bold
@@ -48,22 +47,12 @@ fun SettingsScreen(
 ) {
 	SystemUiHelper(statusIconsLight = true, navigationIconsLight = true)
 
-	var showHemisphereBS by remember {
-		mutableStateOf(false)
-	}
-
 	val uiState by viewModel.uiState.collectAsState()
 
 	SettingsScreenContent(
 		uiState = uiState,
 		onBack = navController::navigateUp,
 	)
-
-	if (showHemisphereBS) {
-		HemisphereBottomSheet(onHemisphereClicked = viewModel::saveHemisphere) {
-			showHemisphereBS = false
-		}
-	}
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -153,6 +142,34 @@ private fun SettingsScreenLayout(
 					)
 				},
 				type = ListPreferenceType.ALERT_DIALOG
+			)
+
+			listPreference(
+				key = PREFERENCES_TRACKING_MODE,
+				icon = {
+					Icon(
+						imageVector = ImageVector.vectorResource(id = R.drawable.ic_orbit),
+						tint = AppTheme.colorScheme.primary,
+						contentDescription = null
+					)
+				},
+				defaultValue = context.getString(TrackingMode.SIDEREAL.text),
+				values = TrackingMode.entries.map { context.getString(it.text) },
+				title = {
+					Text(
+						text = stringResource(id = R.string.settings_tracking_mode),
+						style = textStyle16Regular,
+						color = AppTheme.colorScheme.primary
+					)
+				},
+				summary = {
+					Text(
+						text = it,
+						style = textStyle14Bold,
+						color = AppTheme.colorScheme.primary
+					)
+				},
+				type = ListPreferenceType.ALERT_DIALOG,
 			)
 
 			switchPreferences(
