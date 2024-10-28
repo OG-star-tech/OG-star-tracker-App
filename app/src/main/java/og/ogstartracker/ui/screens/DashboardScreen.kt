@@ -1,14 +1,16 @@
 package og.ogstartracker.ui.screens
 
+import android.Manifest
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.net.Uri
 import android.net.wifi.WifiManager
+import android.os.Build
 import android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS
 import android.provider.Settings.ACTION_WIFI_SETTINGS
-import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -45,11 +47,12 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavController
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import com.google.accompanist.permissions.PermissionState
+import com.google.accompanist.permissions.MultiplePermissionsState
 import com.google.accompanist.permissions.PermissionStatus
 import com.google.accompanist.permissions.isGranted
-import com.google.accompanist.permissions.rememberPermissionState
+import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.google.accompanist.permissions.shouldShowRationale
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import me.zhanghai.compose.preference.LocalPreferenceFlow
@@ -83,8 +86,11 @@ import og.ogstartracker.ui.theme.DimensNormal75
 import og.ogstartracker.ui.theme.DimensSmall100
 import og.ogstartracker.ui.theme.DimensSmall50
 import og.ogstartracker.ui.theme.textStyle20Bold
+import og.ogstartracker.utils.HardwareStatusService
 import og.ogstartracker.utils.SystemUiHelper
 import org.koin.androidx.compose.koinViewModel
+
+private const val RESET_TRACKING_DELAY = 300L
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
@@ -99,9 +105,12 @@ fun DashboardScreen(
 
 	val uiState by viewModel.uiState.collectAsState()
 
-	val fineLocationPermissionState = rememberPermissionState(
-		android.Manifest.permission.ACCESS_FINE_LOCATION
-	)
+	val permissionList = mutableListOf(Manifest.permission.ACCESS_FINE_LOCATION)
+	if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+		permissionList.add(Manifest.permission.POST_NOTIFICATIONS)
+	}
+
+	val fineLocationPermissionState = rememberMultiplePermissionsState(permissionList)
 
 	val checkWifi by viewModel.checkWifiEvent.collectAsState()
 	if (checkWifi) {
@@ -117,13 +126,6 @@ fun DashboardScreen(
 		},
 		onStop = viewModel::stopWiFiTimer
 	)
-
-	LaunchedEffect(uiState.lastMessage) {
-		uiState.lastMessage?.let { message ->
-			Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
-			viewModel.resetMessage()
-		}
-	}
 
 	var showInfoDialog by remember { mutableStateOf(false) }
 
@@ -154,22 +156,26 @@ fun DashboardScreen(
 		},
 		notifyAboutChange = viewModel::notifyCacheAboutChange,
 		onConnectionClick = {
-			if (uiState.wifiConnected) return@DashboardScreenContent
+			if (uiState.haveNotificationPermission &&
+				uiState.haveLocationPermission &&
+				uiState.wifiConnected
+			) return@DashboardScreenContent
 
 			when {
 				// user permanently banned location, navigate to app settings
-				fineLocationPermissionState.status == PermissionStatus.Denied(shouldShowRationale = true) ->
+				fineLocationPermissionState.permissions.any { it.status == PermissionStatus.Denied(shouldShowRationale = true) } ->
 					context.startActivity(Intent(ACTION_APPLICATION_DETAILS_SETTINGS).apply {
 						setData(Uri.fromParts("package", context.packageName, null))
 					})
 
 				// user did not enabled location, request
-				!fineLocationPermissionState.status.isGranted && !fineLocationPermissionState.status.shouldShowRationale -> {
-					fineLocationPermissionState.launchPermissionRequest()
+				!fineLocationPermissionState.allPermissionsGranted
+					&& !fineLocationPermissionState.permissions.all { it.status.shouldShowRationale } -> {
+					fineLocationPermissionState.launchMultiplePermissionRequest()
 				}
 
 				// user enabled location, but is on wrong wifi, open settings
-				fineLocationPermissionState.status.isGranted -> {
+				fineLocationPermissionState.allPermissionsGranted -> {
 					context.startActivity(Intent(ACTION_WIFI_SETTINGS))
 				}
 			}
@@ -186,17 +192,26 @@ fun DashboardScreen(
 	}
 }
 
+@SuppressLint("InlinedApi")
 @OptIn(ExperimentalPermissionsApi::class)
 private fun checkLocationPermission(
 	viewModel: DashboardViewModel,
-	fineLocationPermissionState: PermissionState,
+	fineLocationPermissionStates: MultiplePermissionsState,
 	context: Context
 ) {
-	viewModel.setHaveLocationPermission(fineLocationPermissionState.status.isGranted)
+	viewModel.setHaveNotificationPermission(fineLocationPermissionStates.permissions.firstOrNull {
+		it.permission == Manifest.permission.POST_NOTIFICATIONS
+	}?.status?.isGranted == true)
 
-	fineLocationPermissionState.status.isGranted.let {
+	val haveLocationPermission = fineLocationPermissionStates.permissions.firstOrNull {
+		it.permission == Manifest.permission.ACCESS_FINE_LOCATION
+	}?.status?.isGranted == true
+
+	viewModel.setHaveLocationPermission(haveLocationPermission)
+
+	if (haveLocationPermission) {
 		// detect if user is on the correct wifi
-		if (checkWifiConnection(context, viewModel)) return@let
+		checkWifiConnection(context, viewModel)
 	}
 }
 
@@ -212,6 +227,11 @@ private fun checkWifiConnection(
 
 		val correctWifi = wifiManager.connectionInfo.ssid == Config.WIFI_SSID
 		viewModel.setConnection(correctWifi)
+
+		if (correctWifi) {
+			val serviceIntent = Intent(context, HardwareStatusService::class.java)
+			context.startForegroundService(serviceIntent)
+		}
 	}
 	return false
 }
@@ -270,82 +290,99 @@ private fun DashboardScreenLayout(
 ) {
 	val state = rememberLazyListState()
 
-	LazyColumn(
-		state = state,
-		modifier = modifier,
-		contentPadding = PaddingValues(
-			top = DimensNormal100,
-			bottom = LocalInsets.current.navigationBarInset + DimensNormal200
-		),
-		verticalArrangement = Arrangement.spacedBy(DimensSmall50)
-	) {
-		item {
-			Row(
-				verticalAlignment = Alignment.CenterVertically
-			) {
-				IconButton(onClick = { onInfoClick() }) {
-					Icon(
-						imageVector = ImageVector.vectorResource(R.drawable.ic_information),
-						tint = AppTheme.colorScheme.primary,
-						contentDescription = null,
-						modifier = Modifier
-							.size(BigGeneralIconSize)
-							.padding(DimensSmall100)
-					)
-				}
+	ProvidePreferenceFlow {
+		val trackingModeValue = LocalPreferenceFlow.current.value[PREFERENCES_TRACKING_MODE]
+			?: stringResource(TrackingMode.SIDEREAL.text)
 
-				Text(
-					modifier = Modifier
-						.weight(1f)
-						.padding(vertical = DimensSmall100),
-					text = stringResource(id = R.string.main_title).uppercase(),
-					style = textStyle20Bold,
-					textAlign = TextAlign.Center,
-					color = AppTheme.colorScheme.primary,
-				)
+		val hemisphere = LocalPreferenceFlow.current.value[PREFERENCES_HEMISPHERE]
+			?: stringResource(Hemisphere.NORTH.text)
 
-				IconButton(onClick = { onGearClick() }) {
-					Icon(
-						imageVector = ImageVector.vectorResource(R.drawable.ic_cog),
-						tint = AppTheme.colorScheme.primary,
-						contentDescription = null,
-						modifier = Modifier
-							.size(BigGeneralIconSize)
-							.padding(DimensSmall100)
-					)
-				}
+		LaunchedEffect(trackingModeValue, hemisphere) {
+			// detect changes in tracking mode and hemisphere and reset tracking
+			if (uiState.siderealActive) {
+				onSiderealClicked(false)
+				delay(RESET_TRACKING_DELAY)
+				onSiderealClicked(true)
 			}
 		}
 
-		item {
-			ConnectionCard(
-				connected = uiState.wifiConnected,
-				onCardClick = onConnectionClick,
-				haveLocationPermission = uiState.haveLocationPermission,
-			)
-		}
+		LazyColumn(
+			state = state,
+			modifier = modifier,
+			contentPadding = PaddingValues(
+				top = DimensNormal100,
+				bottom = LocalInsets.current.navigationBarInset + DimensNormal200
+			),
+			verticalArrangement = Arrangement.spacedBy(DimensSmall50)
+		) {
+			item {
+				Row(
+					verticalAlignment = Alignment.CenterVertically
+				) {
+					IconButton(onClick = { onInfoClick() }) {
+						Icon(
+							imageVector = ImageVector.vectorResource(R.drawable.ic_information),
+							tint = AppTheme.colorScheme.primary,
+							contentDescription = null,
+							modifier = Modifier
+								.size(BigGeneralIconSize)
+								.padding(DimensSmall100)
+						)
+					}
 
-		item {
-			Divider(modifier = Modifier.padding(vertical = DimensNormal75))
-		}
+					Text(
+						modifier = Modifier
+							.weight(1f)
+							.padding(vertical = DimensSmall100),
+						text = stringResource(id = R.string.main_title).uppercase(),
+						style = textStyle20Bold,
+						textAlign = TextAlign.Center,
+						color = AppTheme.colorScheme.primary,
+					)
 
-		item {
-			ChecklistCard(
-				opened = uiState.openedCheckbox,
-				onClick = onChecklistClicked,
-				enabled = uiState.wifiConnected,
-				checkListItems = uiState.checkListItems,
-				onCardClick = onChecklistItemClicked,
-			)
-		}
+					IconButton(onClick = { onGearClick() }) {
+						Icon(
+							imageVector = ImageVector.vectorResource(R.drawable.ic_cog),
+							tint = AppTheme.colorScheme.primary,
+							contentDescription = null,
+							modifier = Modifier
+								.size(BigGeneralIconSize)
+								.padding(DimensSmall100)
+						)
+					}
+				}
+			}
 
-		item {
-			ProvidePreferenceFlow {
-				val trackingModeValue = LocalPreferenceFlow.current.value[PREFERENCES_TRACKING_MODE]
-					?: stringResource(TrackingMode.SIDEREAL.text)
+			item {
+				ConnectionCard(
+					connected = uiState.wifiConnected,
+					onCardClick = onConnectionClick,
+					haveLocationPermission = uiState.haveLocationPermission,
+					haveNotificationPermission = uiState.haveNotificationPermission,
+				)
+			}
 
-				val hemisphere = LocalPreferenceFlow.current.value[PREFERENCES_HEMISPHERE]
-					?: stringResource(Hemisphere.NORTH.text)
+			item {
+				Divider(modifier = Modifier.padding(vertical = DimensNormal75))
+			}
+
+			item {
+				ChecklistCard(
+					opened = uiState.openedCheckbox,
+					onClick = onChecklistClicked,
+					enabled = uiState.wifiConnected,
+					checkListItems = uiState.checkListItems,
+					onCardClick = onChecklistItemClicked,
+				)
+			}
+
+			item {
+//			ProvidePreferenceFlow {
+//				val trackingModeValue = LocalPreferenceFlow.current.value[PREFERENCES_TRACKING_MODE]
+//					?: stringResource(TrackingMode.SIDEREAL.text)
+//
+//				val hemisphere = LocalPreferenceFlow.current.value[PREFERENCES_HEMISPHERE]
+//					?: stringResource(Hemisphere.NORTH.text)
 
 				SiderealCard(
 					active = uiState.siderealActive,
@@ -357,29 +394,30 @@ private fun DashboardScreenLayout(
 					hemisphere = hemisphere,
 				)
 			}
-		}
+//		}
 
-		item {
-			SlewControlCard(
-				slewControlCommands = onSlewControlEvent,
-				stepSize = uiState.slewValue,
-				enabled = uiState.wifiConnected,
-			)
-		}
+			item {
+				SlewControlCard(
+					slewControlCommands = onSlewControlEvent,
+					stepSize = uiState.slewValue,
+					enabled = uiState.wifiConnected,
+				)
+			}
 
-		item {
-			PhotoControlCard(
-				uiState = uiState,
-				onPhotoControlEvent = onPhotoControlEvent,
-				notifyAboutChange = notifyAboutChange,
-			)
-		}
+			item {
+				PhotoControlCard(
+					uiState = uiState,
+					onPhotoControlEvent = onPhotoControlEvent,
+					notifyAboutChange = notifyAboutChange,
+				)
+			}
 
-		item {
-			ExpositionTesterCard(
-				uiState = uiState,
-				onExpositionTesterEvent = onExpositionTesterEvent,
-			)
+			item {
+				ExpositionTesterCard(
+					uiState = uiState,
+					onExpositionTesterEvent = onExpositionTesterEvent,
+				)
+			}
 		}
 	}
 }

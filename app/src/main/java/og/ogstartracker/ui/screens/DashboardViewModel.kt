@@ -20,6 +20,7 @@ import og.ogstartracker.domain.events.PhotoControlEvent
 import og.ogstartracker.domain.events.SlewControlEvent
 import og.ogstartracker.domain.models.CheckListItem
 import og.ogstartracker.domain.models.TrackingMode
+import og.ogstartracker.domain.usecases.arduino.GetCurrentStateUseCase
 import og.ogstartracker.domain.usecases.arduino.StartCaptureUseCase
 import og.ogstartracker.domain.usecases.providers.DashboardUseCaseProvider
 import og.ogstartracker.domain.usecases.settings.SetNewSettingsUseCase
@@ -76,7 +77,7 @@ class DashboardViewModel internal constructor(
 				exposeTime = TextFieldState(text = exposureTime?.toString() ?: "", NotEmptyValidator()),
 				frameCount = TextFieldState(text = exposureCount?.toString() ?: "", NotEmptyValidator()),
 				ditherFocalLength = TextFieldState(text = focalLength?.toString() ?: "", NotEmptyValidator()),
-				ditherPixelSize = TextFieldState(text = pixelSize?.toString() ?: "", NotEmptyValidator()),
+				ditherPixelSize = TextFieldState(text = pixelSize?.div(100.0)?.toString() ?: "", NotEmptyValidator()),
 				slewValue = slewSpeed ?: 0,
 				ditheringEnabled = ditherActive == 1,
 				stopTrackingEnabled = stopTracking == 1,
@@ -89,7 +90,7 @@ class DashboardViewModel internal constructor(
 	init {
 		// fetch info if tracker is already in sidereal state
 		viewModelScope.launch(Dispatchers.Default) {
-			useCases.getCurrentState().onSuccess { status ->
+			useCases.getCurrentState(GetCurrentStateUseCase.Input(showInUI = false)).onSuccess { status ->
 				_uiState.update { it.copy(siderealActive = status == STATUS_TRACKING_ON) }
 			}
 		}
@@ -102,11 +103,11 @@ class DashboardViewModel internal constructor(
 	val uiState = combine(
 		_uiState,
 		useCases.didUserSeeOnboarding(),
-		useCases.getLastArduinoMessage()
+		useCases.getLastArduinoMessage(),
 	) { uiState, userSawOnboarding, lastMessage ->
 		uiState.copy(
 			shouldShowOnboardingDialog = !userSawOnboarding,
-			lastMessage = lastMessage
+			lastMessage = lastMessage,
 		)
 	}.stateIn(
 		scope = viewModelScope,
@@ -230,6 +231,7 @@ class DashboardViewModel internal constructor(
 								(uiState.value.ditherPixelSize.textState.text.replace(",", ".").toDouble() * 100.0).roundToInt()
 							} else 0,
 							ditherEnabled = if (uiState.value.ditheringEnabled) 1 else 0,
+							disableTrackingOnEnd = if (uiState.value.stopTrackingEnabled) 1 else 0,
 						)
 					).onSuccess {
 						_uiState.update { it.copy(capturingActive = true, captureStartTime = System.currentTimeMillis()) }
@@ -344,6 +346,7 @@ class DashboardViewModel internal constructor(
 						focalLength = 0,
 						pixSize = 0,
 						ditherEnabled = 0,
+						disableTrackingOnEnd = 0,
 					)
 				).onError {
 					_uiState.update {
@@ -412,16 +415,12 @@ class DashboardViewModel internal constructor(
 				it.copy(
 					captureCount = 0,
 					captureElapsedTimeMillis = 0,
-					captureEstimatedTimeMillis = 0
+					captureEstimatedTimeMillis = 0,
+					capturingActive = false,
 				)
 			}
 
 			stopPhotoCaptureTimer()
-			photoControlEvent(PhotoControlEvent.EndCapture)
-
-			if (uiState.value.stopTrackingEnabled) {
-				changeTracking(false)
-			}
 		}
 	}
 
@@ -458,6 +457,13 @@ class DashboardViewModel internal constructor(
 	}
 
 	/**
+	 * Track value if user did allow notification permission.
+	 */
+	internal fun setHaveNotificationPermission(active: Boolean) {
+		_uiState.update { it.copy(haveNotificationPermission = active) }
+	}
+
+	/**
 	 * Track value if user have wifi connection.
 	 */
 	internal fun setConnection(wifiConnected: Boolean) {
@@ -469,9 +475,9 @@ class DashboardViewModel internal constructor(
 	 * StateFlow holds last value and will not trigger event if the value is the same.
 	 */
 	internal fun resetMessage() {
-		viewModelScope.launch(Dispatchers.Default) {
-			useCases.resetLastArduinoMessage()
-		}
+//		viewModelScope.launch(Dispatchers.Default) {
+//			useCases.resetLastArduinoMessage()
+//		}
 	}
 
 	/**
@@ -530,6 +536,7 @@ class DashboardViewModel internal constructor(
 data class DashboardUiState internal constructor(
 	val wifiConnected: Boolean = false,
 	val haveLocationPermission: Boolean = false,
+	val haveNotificationPermission: Boolean = false,
 	val openedCheckbox: Boolean = false,
 	val siderealActive: Boolean = false,
 	val ditheringEnabled: Boolean = false,

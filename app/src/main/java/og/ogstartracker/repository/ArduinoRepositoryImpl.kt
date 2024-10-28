@@ -47,9 +47,17 @@ class ArduinoRepositoryImpl constructor(
 		numExposures: Int,
 		focalLength: Int,
 		pixSize: Int,
-		ditherEnabled: Int
+		ditherEnabled: Int,
+		disableTrackingOnEnd: Int,
 	) = tryOnline {
-		arduinoApi.startCapture(exposure, numExposures, focalLength, pixSize, ditherEnabled)
+		arduinoApi.startCapture(
+			exposure,
+			numExposures,
+			focalLength,
+			pixSize,
+			ditherEnabled,
+			disableTrackingOnEnd,
+		)
 	}.onSuccess { message ->
 		_lastArduinoMessage.value = message
 	}
@@ -60,7 +68,7 @@ class ArduinoRepositoryImpl constructor(
 		_lastArduinoMessage.value = message
 	}
 
-	override suspend fun getStatus() = tryOnline {
+	override suspend fun getStatus(showInUI: Boolean) = tryOnline {
 		arduinoApi.getStatus()
 	}.onSuccess { message ->
 		_lastArduinoMessage.value = message

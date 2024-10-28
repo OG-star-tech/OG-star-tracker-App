@@ -78,6 +78,7 @@ interface ArduinoRepository {
 	 * @param focalLength The focal length of the telescope, in millimeters.
 	 * @param pixSize The size of the pixels in the camera sensor, in micrometers.
 	 * @param ditherEnabled A flag indicating whether dithering is enabled. Dithering is a technique used in astrophotography to reduce noise in the final image.
+	 * @param disableTrackingOnEnd A flag indicating whether tracking should be disabled at the end of the capture process.
 	 * @return A Resource object that contains a String. If the operation is successful, the String will be a success
 	 * message. If the operation fails, the String will be an error message.
 	 * @throws Exception If there is a problem with the communication with the Arduino, an exception will be thrown.
@@ -88,6 +89,7 @@ interface ArduinoRepository {
 		focalLength: Int,
 		pixSize: Int,
 		ditherEnabled: Int,
+		disableTrackingOnEnd: Int,
 	): Resource<String>
 
 	/**
@@ -108,11 +110,12 @@ interface ArduinoRepository {
 	 * This function sends a command to the Arduino to get its current status. The status includes information about the current
 	 * operation, such as whether the Arduino is currently capturing images or tracking stars.
 	 *
+	 * @param showInUI A flag indicating whether the status message should be shown in the UI.
 	 * @return A Resource object that contains a String. If the operation is successful, the String will be the status
 	 * message. If the operation fails, the String will be an error message.
 	 * @throws Exception If there is a problem with the communication with the Arduino, an exception will be thrown.
 	 */
-	suspend fun getStatus(): Resource<String>
+	suspend fun getStatus(showInUI: Boolean): Resource<String>
 
 	/**
 	 * Resets the last message sent by the Arduino.

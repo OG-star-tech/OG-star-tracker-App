@@ -9,6 +9,7 @@
 	<string name="dialog_close">Close</string>
 	<string name="connection_hint">- Connect to WiFi: OG Star Tracker\n  Password: password123</string>
 	<string name="location_hint">- Enable Location</string>
+	<string name="notification_hint">- Enable Notifications</string>
 	<string name="photo_control_title">Photo Control</string>
 	<string name="photo_control_subtitle">Send Automated Commands to your camera</string>
 	<string name="photo_control_intervalometer">INTERVALOMETER SETTINGS</string>
@@ -60,11 +61,15 @@
 	<string name="settings_vibrations">Vibrations</string>
 	<string name="settings_version_info">Version Info</string>
 	<string name="settings_tracker_firmware">Tracker Firmware</string>
-	<string name="settings_tracker_firmware_cannot_detect">Cannot detekt</string>
+	<string name="settings_tracker_firmware_cannot_detect">Cannot detect</string>
 	<string name="settings_android_version">Android App</string>
 	<string name="settings_tracking_mode">Tracking Mode</string>
 	<string name="settings_tracking_mode_sidereal">Sidereal (23h 56 min 4s)</string>
 	<string name="settings_tracking_mode_solar">Solar (24h)</string>
 	<string name="settings_tracking_mode_lunar">Lunar (24h, 31 min)</string>
+	<string name="notifications_title">OG Star Tracker status</string>
+	<string name="notifications_init_value">Initializing</string>
+	<string name="notifications_channel_name">Hardware Status</string>
+	<string name="notifications_channel_desc">Channel for displaying hardware status</string>
 
 </resources>

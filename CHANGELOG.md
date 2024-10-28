@@ -1,6 +1,16 @@
 # Changelog
 
-## [1.0.5]
+## [1.0.5-beta02]
+
+- added foreground notification which shows status of the tracker even when the Android app is killed
+  -  these states are: **Idle**, **Tracking ON** and **X Captures Remaining...**
+- added new optional notification permission for the foreground notification
+- intervalometer is now ending with arduino code and not the Android app
+- changes in hemisphere and tracking mode are applied immediately after returning from settings screen
+- fix pixel size value not saving properly
+- make vibrations enabled by default
+
+## [1.0.5-beta01]
 
 - add multiple tracking modes (sidereal, solar and lunar)
 - fixed bug when hemisphere setting was ignored (sorry about that)

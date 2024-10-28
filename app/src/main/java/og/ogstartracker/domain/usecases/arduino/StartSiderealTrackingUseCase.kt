@@ -9,7 +9,7 @@ import og.ogstartracker.domain.usecases.base.ResourceSuspendProviderUseCase
 import og.ogstartracker.network.Resource
 import og.ogstartracker.repository.ArduinoRepository
 
-private const val PREFERENCE_SUFFIX = "_preferences"
+const val PREFERENCE_SUFFIX = "_preferences"
 
 class StartSiderealTrackingUseCase constructor(
 	private val repository: ArduinoRepository,

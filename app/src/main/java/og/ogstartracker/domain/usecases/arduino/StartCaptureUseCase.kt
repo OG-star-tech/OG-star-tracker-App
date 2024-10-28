@@ -12,7 +12,8 @@ class StartCaptureUseCase constructor(
 		numExposures = input.numExposures,
 		focalLength = input.focalLength,
 		pixSize = input.pixSize,
-		ditherEnabled = input.ditherEnabled
+		ditherEnabled = input.ditherEnabled,
+		disableTrackingOnEnd = input.disableTrackingOnEnd
 	)
 
 	data class Input constructor(
@@ -21,5 +22,6 @@ class StartCaptureUseCase constructor(
 		val focalLength: Int,
 		val pixSize: Int,
 		val ditherEnabled: Int,
+		val disableTrackingOnEnd: Int,
 	)
 }

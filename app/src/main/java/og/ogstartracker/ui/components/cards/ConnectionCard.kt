@@ -38,6 +38,7 @@ import og.ogstartracker.utils.segmentedShadow
 fun ConnectionCard(
 	connected: Boolean,
 	haveLocationPermission: Boolean,
+	haveNotificationPermission: Boolean,
 	onCardClick: () -> Unit,
 	modifier: Modifier = Modifier,
 ) {
@@ -55,7 +56,7 @@ fun ConnectionCard(
 					color = ColorPrimary,
 					bounded = true,
 				),
-				enabled = !connected
+				enabled = !haveLocationPermission || !haveNotificationPermission || !connected,
 			) {
 				onCardClick()
 			}
@@ -99,6 +100,13 @@ fun ConnectionCard(
 						color = ColorSecondary
 					)
 				}
+				if (!haveNotificationPermission) {
+					Text(
+						text = stringResource(id = R.string.notification_hint),
+						style = textStyle12ItalicBold,
+						color = ColorSecondary
+					)
+				}
 				if (!connected) {
 					Text(
 						text = stringResource(id = R.string.connection_hint),
@@ -129,23 +137,27 @@ fun ConnectionCardPreview() {
 			ConnectionCard(
 				connected = false,
 				onCardClick = {},
-				haveLocationPermission = false
+				haveLocationPermission = false,
+				haveNotificationPermission = true,
 			)
 			ConnectionCard(
 				connected = true,
 				onCardClick = {},
-				haveLocationPermission = false
+				haveLocationPermission = false,
+				haveNotificationPermission = false,
 			)
 
 			ConnectionCard(
 				connected = false,
 				onCardClick = {},
-				haveLocationPermission = true
+				haveLocationPermission = true,
+				haveNotificationPermission = true,
 			)
 			ConnectionCard(
 				connected = true,
 				onCardClick = {},
-				haveLocationPermission = true
+				haveLocationPermission = true,
+				haveNotificationPermission = true,
 			)
 		}
 	}
