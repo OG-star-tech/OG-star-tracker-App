@@ -1,6 +1,6 @@
 # Changelog
 
-## [1.0.6-beta01]
+## [1.0.5-beta02]
 
 - added foreground notification which shows status of the tracker even when the Android app is killed
   -  these states are: **Idle**, **Tracking ON** and **X Captures Remaining...**
