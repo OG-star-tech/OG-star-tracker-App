@@ -50,7 +50,7 @@
 	<string name="slew_control_title">Slew Control</string>
 	<string name="slew_control_subtitle">Manually Rotate Tracker</string>
 	<string name="slew_control_step_size">Slew speed multiplier</string>
-	<string name="slew_control_move">Slew</string>
+	<string name="slew_control_move">Slew (hold)</string>
 	<string name="slew_control_acw">anticlockwise</string>
 	<string name="slew_control_cw">clockwise</string>
 	<string name="settings_title">Settings</string>
