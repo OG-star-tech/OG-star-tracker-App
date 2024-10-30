@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.0.5-beta03]
+
+- slewing now support picking from multiple speed multipliers
+
 ## [1.0.5-beta02]
 
 - added foreground notification which shows status of the tracker even when the Android app is killed
