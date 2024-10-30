@@ -377,13 +377,6 @@ private fun DashboardScreenLayout(
 			}
 
 			item {
-//			ProvidePreferenceFlow {
-//				val trackingModeValue = LocalPreferenceFlow.current.value[PREFERENCES_TRACKING_MODE]
-//					?: stringResource(TrackingMode.SIDEREAL.text)
-//
-//				val hemisphere = LocalPreferenceFlow.current.value[PREFERENCES_HEMISPHERE]
-//					?: stringResource(Hemisphere.NORTH.text)
-
 				SiderealCard(
 					active = uiState.siderealActive,
 					onCheckChanged = {
@@ -394,12 +387,11 @@ private fun DashboardScreenLayout(
 					hemisphere = hemisphere,
 				)
 			}
-//		}
 
 			item {
 				SlewControlCard(
 					slewControlCommands = onSlewControlEvent,
-					stepSize = uiState.slewValue,
+					selectedSpeed = uiState.slewSpeed,
 					enabled = uiState.wifiConnected,
 				)
 			}

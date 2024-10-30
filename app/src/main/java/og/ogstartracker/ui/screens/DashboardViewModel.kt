@@ -12,8 +12,6 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import og.ogstartracker.Config.CHECK_WIFI_DURATION
-import og.ogstartracker.Config.SLEW_MAX_VALUE
-import og.ogstartracker.Config.SLEW_MIN_VALUE
 import og.ogstartracker.Config.STATUS_TRACKING_ON
 import og.ogstartracker.domain.events.ExpositionTesterEvent
 import og.ogstartracker.domain.events.PhotoControlEvent
@@ -78,7 +76,7 @@ class DashboardViewModel internal constructor(
 				frameCount = TextFieldState(text = exposureCount?.toString() ?: "", NotEmptyValidator()),
 				ditherFocalLength = TextFieldState(text = focalLength?.toString() ?: "", NotEmptyValidator()),
 				ditherPixelSize = TextFieldState(text = pixelSize?.div(100.0)?.toString() ?: "", NotEmptyValidator()),
-				slewValue = slewSpeed ?: 0,
+				slewSpeed = slewSpeed ?: 0,
 				ditheringEnabled = ditherActive == 1,
 				stopTrackingEnabled = stopTracking == 1,
 			)
@@ -148,35 +146,30 @@ class DashboardViewModel internal constructor(
 	 */
 	internal fun slewControlEvent(slewControlEvent: SlewControlEvent) {
 		when (slewControlEvent) {
-			SlewControlEvent.Minus -> {
-				val newValue = (uiState.value.slewValue - 1).coerceAtLeast(SLEW_MIN_VALUE)
-				_uiState.update { it.copy(slewValue = newValue) }
-				vibratorController.startVibrations(vibrationPatternClick)
-				notifyCacheAboutChange(SettingItem.SLEW_SPEED, newValue)
-			}
-
-			SlewControlEvent.Plus -> {
-				val newValue = (uiState.value.slewValue + 1).coerceAtMost(SLEW_MAX_VALUE)
-				_uiState.update { it.copy(slewValue = newValue) }
-				vibratorController.startVibrations(vibrationPatternClick)
-				notifyCacheAboutChange(SettingItem.SLEW_SPEED, newValue)
-			}
-
-			SlewControlEvent.RotateAnticlockwise -> {
-				sendCommand {
-					useCases.trackerLeft(uiState.value.slewValue).onSuccess {
-						vibratorController.startVibrations(vibrationPatternClick)
-					}
+			SlewControlEvent.RotateAnticlockwise -> sendCommand {
+				useCases.trackerLeft(uiState.value.slewSpeed).onSuccess {
+					vibratorController.startVibrations(vibrationPatternClick)
 				}
 			}
 
-			SlewControlEvent.RotateClockwise -> {
-				sendCommand {
-					useCases.trackerRight(uiState.value.slewValue).onSuccess {
-						vibratorController.startVibrations(vibrationPatternClick)
-					}
+			SlewControlEvent.RotateClockwise -> sendCommand {
+				useCases.trackerRight(uiState.value.slewSpeed).onSuccess {
+					vibratorController.startVibrations(vibrationPatternClick)
 				}
 			}
+
+			SlewControlEvent.Release -> sendCommand {
+				useCases.stopTrackerSlew()
+			}
+
+			is SlewControlEvent.NewSpeed -> {
+				viewModelScope.launch(Dispatchers.Default) {
+					useCases.setNewSettings(SetNewSettingsUseCase.Input(SettingItem.SLEW_SPEED, slewControlEvent.speed))
+				}
+				_uiState.update { it.copy(slewSpeed = slewControlEvent.speed) }
+			}
+
+			SlewControlEvent.TriggerVibration -> vibratorController.startVibrations(vibrationPatternClick)
 		}
 	}
 
@@ -544,7 +537,7 @@ data class DashboardUiState internal constructor(
 	val capturingActive: Boolean = false,
 	val exposureTestingActive: Boolean = false,
 	val lastMessage: String? = null,
-	val slewValue: Int = 0,
+	val slewSpeed: Int = 0,
 	val trackingMode: TrackingMode = TrackingMode.SIDEREAL,
 	// photo control
 	val captureStartTime: Long? = null,

@@ -36,6 +36,8 @@ val DimensLarge300 = 96.dp
 
 val GeneralIconSize = 24.dp
 val BigGeneralIconSize = 48.dp
+val DropDownWidth = 100.dp
+val SlewButtonHeight = 40.dp
 
 val Shapes = Shapes(
 	small = RoundedCornerShape(DimensSmall100),

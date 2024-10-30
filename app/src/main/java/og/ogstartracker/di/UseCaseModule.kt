@@ -8,6 +8,7 @@ import og.ogstartracker.domain.usecases.arduino.ResetLastArduinoMessageUseCase
 import og.ogstartracker.domain.usecases.arduino.StartCaptureUseCase
 import og.ogstartracker.domain.usecases.arduino.StartSiderealTrackingUseCase
 import og.ogstartracker.domain.usecases.arduino.StopSiderealTrackingUseCase
+import og.ogstartracker.domain.usecases.arduino.StopTrackerSlewUseCase
 import og.ogstartracker.domain.usecases.arduino.TurnTrackerLeftUseCase
 import og.ogstartracker.domain.usecases.arduino.TurnTrackerRightUseCase
 import og.ogstartracker.domain.usecases.onboarding.DidUserSeeOnboardingUseCase
@@ -29,6 +30,12 @@ val useCaseModule = module {
 
 	single {
 		StopSiderealTrackingUseCase(
+			repository = get()
+		)
+	}
+
+	single {
+		StopTrackerSlewUseCase(
 			repository = get()
 		)
 	}
@@ -121,6 +128,7 @@ val useCaseModule = module {
 			startSiderealTracking = get(),
 			getCurrentState = get(),
 			getVersion = get(),
+			stopTrackerSlew = get(),
 		)
 	}
 }

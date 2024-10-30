@@ -25,6 +25,9 @@ interface ArduinoApi {
 		@Query("speed") speed: Int
 	): Response<String>
 
+	@GET("stopslew")
+	suspend fun stopSlew(): Response<String>
+
 	@GET("start")
 	suspend fun startCapture(
 		@Query("exposure") exposure: Int,

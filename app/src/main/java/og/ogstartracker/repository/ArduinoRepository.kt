@@ -69,6 +69,17 @@ interface ArduinoRepository {
 	suspend fun turnRight(stepCount: Int): Resource<String>
 
 	/**
+	 * Stops the current slew operation.
+	 *
+	 * This function sends a command to the Arduino to stop any ongoing slew operation.
+	 *
+	 * @return A Resource object that contains a String. If the operation is successful, the String will be a success
+	 * message. If the operation fails, the String will be an error message.
+	 * @throws Exception If there is a problem with the communication with the Arduino, an exception will be thrown.
+	 */
+	suspend fun stopSlew(): Resource<String>
+
+	/**
 	 * Starts the capture process with the specified parameters.
 	 *
 	 * This function sends a command to the Arduino to start capturing images. The parameters control the characteristics of the capture process.
