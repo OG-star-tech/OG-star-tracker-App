@@ -42,6 +42,12 @@ class ArduinoRepositoryImpl constructor(
 		_lastArduinoMessage.value = message
 	}
 
+	override suspend fun stopSlew() = tryOnline {
+		arduinoApi.stopSlew()
+	}.onSuccess { message ->
+		_lastArduinoMessage.value = message
+	}
+
 	override suspend fun startCapture(
 		exposure: Int,
 		numExposures: Int,
