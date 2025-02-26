@@ -30,6 +30,27 @@ The OG Star Tracker app is designed to assist astrophotographers in setting up t
 * **Moshi** - parsing json
 * **Timber** - logging
 
+## Build setup
+
+To prepare your environment to build the app locally you can use your IDE of choice. This guide walks you through the building of the app with the Visual Studio Code IDE.
+Extensions you need:
+- [Gradle for Java](https://marketplace.visualstudio.com/items?itemName=vscjava.vscode-gradle)
+- [Kotlin Language](https://marketplace.visualstudio.com/items?itemName=mathiasfrohlich.Kotlin)
+
+What you need now is the android sdk. For that we are not required to use the android studio at all and only require the cli tools.
+- Download the [cli-tools for windows](https://developer.android.com/studio?hl=de#command-line-tools-only)
+- Extract them into **android/cmdline-tools/tools**
+- Install the dependencies and the sdk with the sdkmanager
+```shell
+OG-star-tracker-App\android\cmdline-tools\tools\bin> .\sdkmanager.bat "platform-tools"
+OG-star-tracker-App\android\cmdline-tools\tools\bin> .\sdkmanager.bat "platforms;android-34"
+OG-star-tracker-App\android\cmdline-tools\tools\bin> .\sdkmanager.bat "build-tools;34.0.0"
+```
+- Configure the **$ANDROID_HOME** variable in your PATH or alternatively set the **sdk.dir=android** in your **local.properties**.
+- Now reload the window and and let the gradle extension configure the project.
+- Once the **OG Star Tracker** project is configured you can check the **Tasks/other** directive and execute the **zipApksForDevDebug** to finally build the App.
+
+
 ## Contributing to the OG Star Tracker App
 
 We welcome contributions from the community! If you're looking to contribute to the OG Star Tracker app, here's how you can do so:
