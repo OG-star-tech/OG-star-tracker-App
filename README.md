@@ -51,6 +51,22 @@ OG-star-tracker-App\android\cmdline-tools\tools\bin> .\sdkmanager.bat "build-too
 - Once the **OG Star Tracker** project is configured you can check the **Tasks/other** directive and execute the **zipApksForDevDebug** to finally build the App.
 
 
+## Debugging the app
+
+To debug the app you need to install certain extension in VSCode and enable **USB-Debugging** on your phone.
+- Install the **Android Debugger** extension in VSCode.
+- Enable **USB-Debugging** on your phones **developer options**
+- Check if your device is prepared With above installed platform-tools you installed the **Android Debug Bridge** already.
+```shell
+$ ./android/platform-tools/adb.exe devices
+List of devices attached
+CLCDU1852300457        device
+```
+- Create a debug configuration by adding a new configuration at **Run -> Add configuration**
+- change the **apkFile** entry to the actual apk filepath
+- Run the **launch** followed by the **attach** debug configuration
+Now you are set up to debug the application!
+
 ## Contributing to the OG Star Tracker App
 
 We welcome contributions from the community! If you're looking to contribute to the OG Star Tracker app, here's how you can do so:
