@@ -67,6 +67,15 @@ android {
 			buildConfigField("String", "TRACKER_URL", "\"http://www.tracker.com\"")
 		}
 	}
+	
+	applicationVariants.all {
+		outputs.all {
+			val outputImpl = this as com.android.build.gradle.internal.api.BaseVariantOutputImpl
+			val variantName = name
+			val newApkName = "OGStarTrackerApp-${variantName}.apk"
+			outputImpl.outputFileName = newApkName
+		}
+	}
 
 	compileOptions {
 		sourceCompatibility = JavaVersion.VERSION_17
